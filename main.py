@@ -5,12 +5,12 @@ import streamlit as st
 from langchain_community.document_loaders import (  PyPDFLoader )
 from langchain_text_splitters import (    RecursiveCharacterTextSplitter )
 from langchain_chroma import (    Chroma  )
-from langchain_openai import (  OpenAIEmbeddings,    ChatOpenAI )
+from langchain_openai import   OpenAIEmbeddings,    ChatOpenAI 
 from langchain_classic.chains import (   create_retrieval_chain )
 from langchain_classic.chains.combine_documents import create_stuff_documents_chain
 
 from langchain_core.prompts import (   ChatPromptTemplate )
-from langchain_core.callbacks import (   BaseCallbackHandler ) # 결과값 출력시 한글자씩 출력하기 위한 Handler
+from langchain_core.callbacks import   BaseCallbackHandler
 
 st.title("📄 PDF File Reader")
 st.write("----------------")
@@ -39,8 +39,7 @@ def pdf_to_document(uploaded_file):
     pages = loader.load()
     return pages
 
-class StreamHandler( BaseCallbackHandler ):
-
+class StreamHandler(  BaseCallbackHandler ):
     """
     GPT가 토큰을 생성할 때마다
     Streamlit 화면에 출력하는 Handler
@@ -58,7 +57,7 @@ class StreamHandler( BaseCallbackHandler ):
         self.container = container
         self.text = ""
 
-    def on_llm_new_token(  self,  token,   **kwargs ):  # **는 갯수에 제한없이 받을수 있다
+    def on_llm_new_token(  self,  token,   **kwargs ):
         # 새 토큰 누적
         self.text += token
         # 화면 갱신
@@ -66,7 +65,7 @@ class StreamHandler( BaseCallbackHandler ):
 
 if uploaded_file is not None:
     pages = pdf_to_document(   uploaded_file   )
-    st.success(   f"PDF 페이지 : {len(pages)}"  )
+    # st.success(   f"PDF 페이지 : {len(pages)}"  )
 
     text_splitter = RecursiveCharacterTextSplitter(
         chunk_size=500,
@@ -75,7 +74,7 @@ if uploaded_file is not None:
 
     texts = text_splitter.split_documents(    pages   )
 
-    st.info(  f"문서 조각 : {len(texts)}"  )
+    # st.info(  f"문서 조각 : {len(texts)}"  )
 
     embeddings = OpenAIEmbeddings(  api_key=openai_key   )
 
@@ -97,18 +96,18 @@ if uploaded_file is not None:
         if question == "":
             st.warning( "질문을 입력하세요"   )
         else:
-            with st.spinner(  "답변 생성중..." , show_time=True):
+            with st.spinner(  "답변 생성중..."  ,show_time=True  ): 
 
                 chat_box = st.empty()
 
                 handler = StreamHandler(      chat_box       )
 
                 llm = ChatOpenAI(
-                    model="gpt-4.1-mini",
+                    model="gpt-4o-mini",
                     temperature=0,
                     api_key=openai_key,
                     streaming=True,
-                    callbacks=[ handler  ]  # GPT 토큰 생성시마다 handler의 on_llm_new_token이 호출되어 실시간 출력
+                    callbacks=[ handler  ]
                 )
 
                 prompt = ChatPromptTemplate.from_template(
@@ -126,6 +125,14 @@ if uploaded_file is not None:
                     retriever,
                     document_chain
                 )
+            ###############################################
+                def stream_answer():
+                    for chunk in qa_chain.stream({"input": question}):
+                        if answer_chunk := chunk.get("answer"):
+                            yield answer_chunk
 
-                result = qa_chain.invoke(    {    "input": question    }      )
-                st.write(  result["answer"]    )
+                st.write_stream(stream_answer)
+            ###################################################
+                # result = qa_chain.invoke(    {    "input": question    }      )
+                # st.write(result["answer"] )  # 이 부분 빠졌었습니다.
+                
