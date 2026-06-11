@@ -10,13 +10,14 @@ try:
 except ImportError:
     pass
 
-from dotenv import load_dotenv
+# from dotenv import load_dotenv
+# .env 파일 안의 OPENAI_API_KEY 읽기 (로컬 환경용)
+# load_dotenv()
+
 import os
 import tempfile
 import streamlit as st
 
-# .env 파일 안의 OPENAI_API_KEY 읽기 (로컬 환경용)
-load_dotenv()
 
 # Streamlit Cloud Secret에서 API 키 환경 변수 설정
 try:
